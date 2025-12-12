@@ -334,6 +334,51 @@ class PrivateRecipeAPITest(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertEqual(recipe.ingrediants.count(), 0)
 
+    def test_filter_by_tags(self):
+        recipe1 = create_recipe(user=self.user, title='recipe1')
+        recipe2 = create_recipe(user=self.user, title='recipe2')
+
+        tag1 = Tag.objects.create(user=self.user, name='tag1')
+        tag2 = Tag.objects.create(user=self.user, name='tag2')
+        recipe1.tags.add(tag1)
+        recipe2.tags.add(tag2)
+        recipe3 = create_recipe(user=self.user, title='recipe3')
+
+        params = {'tags': f'{tag1.id}, {tag2.id}'}
+        res = self.client.get(RECIPE_URL, params)
+
+        s1 = RecipeSerializer(recipe1)
+        s2 = RecipeSerializer(recipe2)
+        s3 = RecipeSerializer(recipe3)
+
+        self.assertIn(s1.data, res.data)
+        self.assertIn(s2.data, res.data)
+        self.assertNotIn(s3.data, res.data)
+    
+    def test_filter_by_ingrediants(self):
+        recipe1 = create_recipe(user=self.user, title='recipe1')
+        recipe2 = create_recipe(user=self.user, title='recipe2')
+
+        ingrediant1 = Ingrediant.objects.create(user=self.user, name='ingrediant1')
+        ingrediant2 = Ingrediant.objects.create(user=self.user, name='ingrediant2')
+
+        recipe1.ingrediants.add(ingrediant1)
+        recipe2.ingrediants.add(ingrediant2)
+        recipe3 = create_recipe(user=self.user, title='recipe3')
+
+        params = {'ingrediants': f'{ingrediant1.id}, {ingrediant2.id}'}
+        res = self.client.get(RECIPE_URL, params)
+
+        s1 = RecipeSerializer(recipe1)
+        s2 = RecipeSerializer(recipe2)
+        s3 = RecipeSerializer(recipe3)
+
+        self.assertIn(s1.data, res.data)
+        self.assertIn(s2.data, res.data)
+        self.assertNotIn(s3.data, res.data)
+
+
+
 
 class ImageUploadTests(TestCase):
     def setUp(self):
